@@ -2,18 +2,52 @@
 let graficoRelatorio = null;
 let dadosRelatorio = null;
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-    verificarAutenticacao();
-    carregarNavbar();
-    carregarSidebar();
-    inicializarRelatorios();
-});
+// Função de teste para verificar autenticação
+async function testarAutenticacao() {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+        console.error('Token não encontrado');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/relatorios/teste', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const dados = await response.json();
+            console.log('Teste de autenticação:', dados);
+            return dados;
+        } else {
+            const erro = await response.json();
+            console.error('Erro no teste:', erro);
+            return null;
+        }
+    } catch (error) {
+        console.error('Erro na requisição de teste:', error);
+        return null;
+    }
+}
 
 // Inicializar página de relatórios
 async function inicializarRelatorios() {
     const token = sessionStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+        console.error('Token não encontrado');
+        return;
+    }
+
+    console.log('Inicializando relatórios...'); // Debug
+
+    // Testar autenticação primeiro
+    const testeAuth = await testarAutenticacao();
+    if (!testeAuth) {
+        console.error('Falha na autenticação');
+        return;
+    }
 
     // Configurar períodos padrão (últimos 6 meses)
     configurarPeriodosPadrao();
@@ -26,6 +60,17 @@ async function inicializarRelatorios() {
     
     // Verificar permissões
     verificarPermissoesRelatorios();
+
+    console.log('Relatórios inicializados com sucesso'); // Debug
+}
+
+// Funções auxiliares para compatibilidade
+function carregarNavbar() {
+    // A navbar já é carregada pelo main.js
+}
+
+function carregarSidebar() {
+    // O sidebar não é usado nesta página
 }
 
 // Configurar períodos padrão
@@ -121,11 +166,17 @@ function verificarPermissoesRelatorios() {
     const usuario = JSON.parse(sessionStorage.getItem('usuario'));
     const perfil = usuario?.perfil;
     
+    console.log('Perfil do usuário:', perfil); // Debug
+    console.log('Usuário completo:', usuario); // Debug
+    
     // Apenas ADMIN, PASTOR e SUPER_ADMIN podem acessar relatórios
     if (perfil === 'MEMBRO') {
+        console.warn('Usuário MEMBRO tentando acessar relatórios - redirecionando para dashboard');
         window.location.href = 'dashboard.html';
         return;
     }
+    
+    console.log('Usuário tem permissão para acessar relatórios'); // Debug
 }
 
 // Ajustar filtros conforme tipo de relatório
@@ -213,16 +264,32 @@ async function buscarDadosRelatorio(token, tipo, filtros) {
         url += `igreja_id=${usuario.igreja_id}&`;
     }
 
-    const response = await fetch(url, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
+    console.log('URL do relatório:', url); // Debug
 
-    if (response.ok) {
-        return await response.json();
-    } else {
-        throw new Error('Erro ao buscar dados');
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        console.log('Status da resposta:', response.status); // Debug
+
+        if (response.ok) {
+            const dados = await response.json();
+            console.log('Dados recebidos:', dados); // Debug
+            return dados;
+        } else {
+            const erroData = await response.json().catch(() => ({ erro: 'Erro desconhecido' }));
+            console.error('Erro do servidor:', erroData); // Debug
+            throw new Error(`Erro ${response.status}: ${erroData.erro || 'Erro ao buscar dados'}`);
+        }
+    } catch (error) {
+        console.error('Erro na requisição:', error); // Debug
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Servidor não está respondendo. Verifique se o backend está rodando.');
+        }
+        throw error;
     }
 }
 
