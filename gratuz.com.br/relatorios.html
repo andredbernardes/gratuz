@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relatórios - Gratuz</title>
+  <link rel="icon" href="./assets/icon-gratuz-azul.png" type="favicon"/>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-body-tertiary">
+  <!-- NAVBAR -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="container-fluid" id="main-content">
+    <header class="page-header mb-4">
+      <h1 class="page-title">Relatórios</h1>
+      <p class="page-subtitle text-muted">Gere relatórios detalhados e exporte dados do sistema.</p>
+    </header>
+
+    <!-- Seção Relatórios -->
+    <section id="relatorios">
+      <!-- Filtros Principais -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <label for="tipoRelatorio" class="form-label">Tipo de Relatório</label>
+          <select id="tipoRelatorio" class="form-select">
+            <option value="">Selecione o tipo</option>
+            <option value="dizimos">Relatório de Dízimos</option>
+            <option value="celulas">Relatório de Células</option>
+            <option value="membros">Relatório de Membros</option>
+            <option value="contribuintes">Top Contribuintes</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="periodoInicio" class="form-label">Período Início</label>
+          <input type="month" id="periodoInicio" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label for="periodoFim" class="form-label">Período Fim</label>
+          <input type="month" id="periodoFim" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label for="filtroCelula" class="form-label">Célula</label>
+          <select id="filtroCelula" class="form-select">
+            <option value="">Todas as Células</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <button id="btnGerarRelatorio" class="btn btn-primary me-2">
+            <i class="bi bi-search me-1"></i>
+            Gerar Relatório
+          </button>
+          <button id="btnExportarPDF" class="btn btn-danger me-2" disabled>
+            <i class="bi bi-file-pdf me-1"></i>
+            Exportar PDF
+          </button>
+          <button id="btnExportarExcel" class="btn btn-success me-2" disabled>
+            <i class="bi bi-file-excel me-1"></i>
+            Exportar Excel
+          </button>
+          <button id="btnLimparFiltros" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            Limpar Filtros
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loadingRelatorio" class="text-center py-5" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Carregando...</span>
+        </div>
+        <p class="mt-2">Gerando relatório...</p>
+      </div>
+
+      <!-- Resultado do Relatório -->
+      <div id="resultadoRelatorio" style="display: none;">
+        <!-- Resumo -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <div class="card kpi-card p-3 shadow-sm border-0">
+              <div class="d-flex align-items-center">
+                <div class="kpi-icon bg-primary text-white me-3">
+                  <i class="bi bi-cash-stack"></i>
+                </div>
+                <div>
+                  <div class="kpi-title text-muted">Total Geral</div>
+                  <div class="kpi-value" id="totalGeral">R$ 0,00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card kpi-card p-3 shadow-sm border-0">
+              <div class="d-flex align-items-center">
+                <div class="kpi-icon bg-success text-white me-3">
+                  <i class="bi bi-graph-up"></i>
+                </div>
+                <div>
+                  <div class="kpi-title text-muted">Média por Membro</div>
+                  <div class="kpi-value" id="mediaMembro">R$ 0,00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card kpi-card p-3 shadow-sm border-0">
+              <div class="d-flex align-items-center">
+                <div class="kpi-icon bg-info text-white me-3">
+                  <i class="bi bi-list-check"></i>
+                </div>
+                <div>
+                  <div class="kpi-title text-muted">Total de Contribuições</div>
+                  <div class="kpi-value" id="totalContribuicoes">0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card kpi-card p-3 shadow-sm border-0">
+              <div class="d-flex align-items-center">
+                <div class="kpi-icon bg-warning text-dark me-3">
+                  <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                  <div class="kpi-title text-muted">Membros Ativos</div>
+                  <div class="kpi-value" id="membrosAtivos">0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">
+                  <i class="bi bi-graph-up me-2"></i>
+                  Visualização Gráfica
+                </h5>
+              </div>
+              <div class="card-body">
+                <canvas id="graficoRelatorio" width="400" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Dados -->
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">
+                  <i class="bi bi-table me-2"></i>
+                  Dados Detalhados
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table id="tabelaRelatorio" class="table table-striped table-hover">
+                    <thead>
+                      <tr>
+                        <th>Membro</th>
+                        <th>Célula</th>
+                        <th>Data</th>
+                        <th>Valor</th>
+                        <th>Método</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Dados serão inseridos via JavaScript -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagem quando não há dados -->
+      <div id="semDados" class="text-center py-5" style="display: none;">
+        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+        <h4 class="text-muted mt-3">Nenhum dado encontrado</h4>
+        <p class="text-muted">Tente ajustar os filtros ou selecionar outro período.</p>
+      </div>
+    </section>
+  </main>
+  
+  <!-- FOOTER -->
+  <div id="footer-placeholder"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/relatorios.js"></script>
+</body>
+</html> 

@@ -1,0 +1,237 @@
+/* ---------------------------------- */
+/*          ESTILOS GERAIS          */
+/* ---------------------------------- */
+body {
+  font-family: 'Inter', sans-serif; /* Uma fonte moderna, similar à da imagem */
+  background-color: #f8f9fa; /* Fundo cinza claro */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ---------------------------------- */
+/*             LOGIN                  */
+/* ---------------------------------- */
+#loginSection {
+  background-color: #f8f9fa;
+}
+
+#card-login .card-body {
+  padding: 2.5rem;
+}
+
+/* ---------------------------------- */
+/*             NAVBAR                 */
+/* ---------------------------------- */
+.navbar.bg-dark {
+  background-color: #1a202c !important; /* Tom de azul escuro/preto */
+  padding: 0.75rem;
+}
+button#perfilDropdown, .btn .show {
+  background: #0c1526 !important;
+}
+.navbar-brand img {
+  width: 32px;
+  height: 32px;
+}
+
+.navbar .nav-link {
+  color: #a0aec0; /* cinza claro para links */
+  font-weight: 500;
+  margin: 0 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.navbar .nav-link:hover, .navbar .nav-link.active {
+  color: #ffffff;
+  background-color: #2d3748; /* Fundo mais claro no hover/active */
+}
+
+/* Dropdown do usuário */
+.navbar .dropdown .btn-outline-light {
+  border-color: #4a5568;
+  color: #e2e8f0;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.navbar .dropdown .btn-outline-light:hover {
+  background-color: #2d3748;
+  border-color: #718096;
+  color: #ffffff;
+}
+
+.navbar .dropdown .btn-outline-light .bi-person-circle {
+  font-size: 1.1rem;
+}
+
+#perfilNomeUsuario {
+  font-weight: 600; /* Negrito */
+}
+
+#perfilTipoUsuario {
+  font-weight: 400; /* Tira o negrito herdado */
+  font-size: 0.8em; /* Tamanho um pouco menor */
+  margin-top: 4px;
+}
+
+.navbar .dropdown-menu {
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff;
+  margin-top: 0.5rem;
+}
+
+.navbar .dropdown-menu .dropdown-header {
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+.navbar .dropdown-menu .dropdown-item {
+  color: #2d3748;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.navbar .dropdown-menu .dropdown-item:hover {
+  background-color: #f7fafc;
+  color: #1a202c;
+}
+
+.navbar .dropdown-menu .dropdown-item.text-danger:hover {
+  background-color: #fed7d7;
+  color: #c53030;
+}
+
+/* ---------------------------------- */
+/*         CABEÇALHO DA PÁGINA        */
+/* ---------------------------------- */
+.page-header {
+  margin-bottom: 2rem;
+}
+.page-header .page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+.page-header .page-subtitle {
+  font-size: 1rem;
+  color: #718096; /* cinza médio */
+}
+
+/* ---------------------------------- */
+/*              CARDS                 */
+/* ---------------------------------- */
+.card {
+  border: none;
+  border-radius: 0.75rem; /* Bordas mais arredondadas */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.card .card-header {
+  background-color: transparent;
+  border-bottom: 1px solid #e2e8f0; /* Divisor cinza claro */
+  padding: 1rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.card .card-body {
+  padding: 1.5rem;
+}
+
+/* Estilos para os cards de KPI do dashboard */
+.kpi-card .d-flex {
+  width: 100%;
+}
+
+.kpi-card .kpi-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+}
+
+.kpi-card .kpi-title {
+  font-size: 0.9rem;
+  color: #6c757d; /* Tom de cinza mais padrão */
+  margin-bottom: 0.1rem;
+  text-align: left;
+}
+.kpi-card .kpi-value {
+  font-size: 1.75rem; /* Levemente menor para melhor encaixe */
+  font-weight: 700;
+  color: #212529;
+  text-align: left;
+  line-height: 1.2;
+}
+
+/* ---------------------------------- */
+/*             GRÁFICOS               */
+/* ---------------------------------- */
+.chart-container {
+  height: 350px;
+}
+
+/* Estilos legados - podem ser removidos depois */
+.row.boas-vindas {
+    display: none; /* Oculta o header antigo */
+}
+img#logo-menu {
+    width: 32px;
+}
+div#pagina-dashboard {
+    background: #ffffff;
+    border: 1px solid #efeeee;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 16px;
+}
+canvas#graficoDizimos, canvas#tiposDizimosChart {
+    width: 100%;
+    height: 360px;
+}
+
+main#main-content {
+  flex: 1; /* Faz o conteúdo principal crescer e empurrar o rodapé */
+  padding: 8rem 24px; /* Espaçamento para a navbar fixa */
+  /* padding-bottom: 2rem; */
+}
+
+.table-responsive {
+  margin-top: 1rem;
+}
+
+@media (max-width: 767px) {
+  .page-header .page-title {
+    font-size: 1.75rem;
+  }
+  
+  main#main-content {
+    padding-top: 70px;
+  }
+  
+  .card .card-body {
+    padding: 1rem;
+  }
+}
+
+/* Corrige badge de células na tabela de usuários para nunca quebrar linha */
+.celula-badge-nowrap {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 0.25rem;
+}
