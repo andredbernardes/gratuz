@@ -233,6 +233,8 @@ async function initApp() {
     carregarDizimos();
   } else if (pagina.endsWith('usuarios.html') && typeof initUsuariosPage === 'function') {
     initUsuariosPage();
+  } else if (pagina.endsWith('relatorios.html') && typeof inicializarRelatorios === 'function') {
+    inicializarRelatorios();
   }
   
   // Ajusta a UI por perfil após a inicialização da página específica
@@ -251,6 +253,7 @@ document.addEventListener('DOMContentLoaded', initApp);
     "dashboard": "menu-dashboard",
     "usuarios": "menu-usuarios",
     "dizimos": "menu-dizimos",
+    "relatorios": "menu-relatorios"
   };
 
   // Aplica a classe 'active' ao item de menu correspondente

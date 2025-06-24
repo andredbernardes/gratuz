@@ -575,6 +575,10 @@ function formatarData(data) {
 }
 
 function mostrarAlerta(mensagem, tipo) {
-    // Implementar sistema de alertas
-    alert(mensagem);
+    // Usar o sistema de toast do main.js
+    if (typeof mostrarToast === 'function') {
+        mostrarToast(mensagem, tipo);
+    } else {
+        alert(mensagem);
+    }
 } 
