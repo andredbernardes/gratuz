@@ -57,7 +57,7 @@ async function relatorioDizimos(req, res) {
                 d.tipotributo as metodo_pagamento,
                 u.nome as nome_usuario,
                 u.id as usuario_id,
-                c.nome as nome_celula,
+                STRING_AGG(DISTINCT c.nome, ', ') as nome_celula,
                 i.nome as nome_igreja
             FROM dizimos d
             JOIN usuarios u ON d.usuario_id = u.id
@@ -65,11 +65,26 @@ async function relatorioDizimos(req, res) {
             LEFT JOIN celulas c ON uc.celula_id = c.id
             LEFT JOIN igrejas i ON d.igreja_id = i.id
             ${filtro}
+            GROUP BY d.id, d.valor, d.data_pagamento, d.tipotributo, u.nome, u.id, i.nome
             ORDER BY d.data_pagamento DESC
         `;
 
         const { rows } = await db.query(query, params);
-        res.json(rows);
+        
+        // Calcular totais
+        const totalGeral = rows.reduce((sum, item) => sum + parseFloat(item.valor), 0);
+        const mediaMembro = rows.length > 0 ? totalGeral / rows.length : 0;
+        const membrosUnicos = new Set(rows.map(item => item.usuario_id)).size;
+        
+        res.json({
+            dados: rows,
+            resumo: {
+                totalGeral,
+                mediaMembro,
+                totalContribuicoes: rows.length,
+                membrosAtivos: membrosUnicos
+            }
+        });
 
     } catch (error) {
         console.error('Erro no relatório de dízimos:', error);
@@ -104,22 +119,33 @@ async function relatorioCelulas(req, res) {
             SELECT 
                 c.id,
                 c.nome as nome_celula,
-                c.descricao,
-                c.status,
                 i.nome as igreja,
                 COUNT(DISTINCT uc.usuario_id) as total_membros,
-                STRING_AGG(DISTINCT u.nome, ', ') as administrador
+                STRING_AGG(DISTINCT u.nome, ', ') as administradores
             FROM celulas c
             LEFT JOIN igrejas i ON c.igreja_id = i.id
             LEFT JOIN usuarios_celulas uc ON c.id = uc.celula_id
             LEFT JOIN usuarios u ON uc.usuario_id = u.id AND uc.admin = true
             ${filtro}
-            GROUP BY c.id, c.nome, c.descricao, c.status, i.nome
+            GROUP BY c.id, c.nome, i.nome
             ORDER BY c.nome
         `;
 
         const { rows } = await db.query(query, params);
-        res.json(rows);
+        
+        // Calcular totais
+        const totalGeral = rows.reduce((sum, item) => sum + parseInt(item.total_membros), 0);
+        const mediaMembro = rows.length > 0 ? totalGeral / rows.length : 0;
+        
+        res.json({
+            dados: rows,
+            resumo: {
+                totalGeral,
+                mediaMembro,
+                totalContribuicoes: rows.length,
+                membrosAtivos: totalGeral
+            }
+        });
 
     } catch (error) {
         console.error('Erro no relatório de células:', error);
@@ -169,7 +195,6 @@ async function relatorioMembros(req, res) {
                 u.nome as nome_usuario,
                 u.email,
                 u.perfil,
-                u.status,
                 STRING_AGG(DISTINCT c.nome, ', ') as nome_celula,
                 i.nome as nome_igreja
             FROM usuarios u
@@ -177,12 +202,25 @@ async function relatorioMembros(req, res) {
             LEFT JOIN celulas c ON uc.celula_id = c.id
             LEFT JOIN igrejas i ON u.igreja_id = i.id
             ${filtro}
-            GROUP BY u.id, u.nome, u.email, u.perfil, u.status, i.nome
+            GROUP BY u.id, u.nome, u.email, u.perfil, i.nome
             ORDER BY u.nome
         `;
 
         const { rows } = await db.query(query, params);
-        res.json(rows);
+        
+        // Calcular totais
+        const totalGeral = rows.length;
+        const mediaMembro = 0; // Não aplicável para membros
+        
+        res.json({
+            dados: rows,
+            resumo: {
+                totalGeral,
+                mediaMembro,
+                totalContribuicoes: totalGeral,
+                membrosAtivos: totalGeral
+            }
+        });
 
     } catch (error) {
         console.error('Erro no relatório de membros:', error);
@@ -243,7 +281,7 @@ async function relatorioContribuintes(req, res) {
             SELECT 
                 u.id as usuario_id,
                 u.nome as nome_usuario,
-                c.nome as nome_celula,
+                STRING_AGG(DISTINCT c.nome, ', ') as nome_celula,
                 SUM(d.valor) as total_contribuido,
                 COUNT(d.id) as total_contribuicoes,
                 AVG(d.valor) as media_contribuicao,
@@ -253,13 +291,27 @@ async function relatorioContribuintes(req, res) {
             LEFT JOIN usuarios_celulas uc ON u.id = uc.usuario_id
             LEFT JOIN celulas c ON uc.celula_id = c.id
             ${filtro}
-            GROUP BY u.id, u.nome, c.nome
+            GROUP BY u.id, u.nome
             ORDER BY total_contribuido DESC
             LIMIT 10
         `;
 
         const { rows } = await db.query(query, params);
-        res.json(rows);
+        
+        // Calcular totais
+        const totalGeral = rows.reduce((sum, item) => sum + parseFloat(item.total_contribuido), 0);
+        const mediaMembro = rows.length > 0 ? totalGeral / rows.length : 0;
+        const totalContribuicoes = rows.reduce((sum, item) => sum + parseInt(item.total_contribuicoes), 0);
+        
+        res.json({
+            dados: rows,
+            resumo: {
+                totalGeral,
+                mediaMembro,
+                totalContribuicoes,
+                membrosAtivos: rows.length
+            }
+        });
 
     } catch (error) {
         console.error('Erro no relatório de contribuintes:', error);

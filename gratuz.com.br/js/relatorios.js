@@ -221,11 +221,12 @@ async function gerarRelatorio() {
 
     try {
         const filtros = obterFiltros();
-        const dados = await buscarDadosRelatorio(token, tipoRelatorio, filtros);
-        
-        if (dados && dados.length > 0) {
-            dadosRelatorio = dados;
-            exibirRelatorio(dados, tipoRelatorio);
+        const resultado = await buscarDadosRelatorio(token, tipoRelatorio, filtros);
+        // Aceita tanto array quanto objeto com dados
+        const dadosArray = resultado?.dados || (Array.isArray(resultado) ? resultado : []);
+        if (dadosArray.length > 0) {
+            dadosRelatorio = resultado;
+            exibirRelatorio(resultado, tipoRelatorio);
             habilitarBotoesExportacao();
         } else {
             mostrarSemDados();
@@ -276,9 +277,9 @@ async function buscarDadosRelatorio(token, tipo, filtros) {
         console.log('Status da resposta:', response.status); // Debug
 
         if (response.ok) {
-            const dados = await response.json();
-            console.log('Dados recebidos:', dados); // Debug
-            return dados;
+            const resultado = await response.json();
+            console.log('Dados recebidos:', resultado); // Debug
+            return resultado;
         } else {
             const erroData = await response.json().catch(() => ({ erro: 'Erro desconhecido' }));
             console.error('Erro do servidor:', erroData); // Debug
@@ -294,12 +295,12 @@ async function buscarDadosRelatorio(token, tipo, filtros) {
 }
 
 // Exibir relatório
-function exibirRelatorio(dados, tipo) {
-    // Calcular resumos
-    const resumos = calcularResumos(dados, tipo);
+function exibirRelatorio(resultado, tipo) {
+    const dados = resultado.dados || resultado; // Compatibilidade com formato antigo
+    const resumo = resultado.resumo || calcularResumos(dados, tipo);
     
     // Atualizar cards de resumo
-    atualizarCardsResumo(resumos);
+    atualizarCardsResumo(resumo);
     
     // Criar gráfico
     criarGrafico(dados, tipo);
@@ -311,9 +312,9 @@ function exibirRelatorio(dados, tipo) {
     document.getElementById('resultadoRelatorio').style.display = 'block';
 }
 
-// Calcular resumos
+// Calcular resumos (fallback para formato antigo)
 function calcularResumos(dados, tipo) {
-    if (tipo === 'dizimos' || tipo === 'contribuintes') {
+    if (tipo === 'dizimos') {
         const total = dados.reduce((sum, item) => sum + parseFloat(item.valor || 0), 0);
         const media = dados.length > 0 ? total / dados.length : 0;
         const membrosUnicos = new Set(dados.map(item => item.usuario_id)).size;
@@ -324,9 +325,30 @@ function calcularResumos(dados, tipo) {
             totalContribuicoes: dados.length,
             membrosAtivos: membrosUnicos
         };
+    } else if (tipo === 'contribuintes') {
+        const total = dados.reduce((sum, item) => sum + parseFloat(item.total_contribuido || 0), 0);
+        const media = dados.length > 0 ? total / dados.length : 0;
+        const totalContribuicoes = dados.reduce((sum, item) => sum + parseInt(item.total_contribuicoes || 0), 0);
+        
+        return {
+            totalGeral: total,
+            mediaMembro: media,
+            totalContribuicoes: totalContribuicoes,
+            membrosAtivos: dados.length
+        };
+    } else if (tipo === 'celulas') {
+        const total = dados.reduce((sum, item) => sum + parseInt(item.total_membros || 0), 0);
+        const media = dados.length > 0 ? total / dados.length : 0;
+        
+        return {
+            totalGeral: total,
+            mediaMembro: media,
+            totalContribuicoes: dados.length,
+            membrosAtivos: total
+        };
     } else {
         return {
-            totalGeral: 0,
+            totalGeral: dados.length,
             mediaMembro: 0,
             totalContribuicoes: dados.length,
             membrosAtivos: dados.length
@@ -400,6 +422,16 @@ function criarGraficoDizimos(dados) {
                     display: true,
                     text: 'Evolução dos Dízimos'
                 }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return formatarMoeda(value);
+                        }
+                    }
+                }
             }
         }
     };
@@ -407,25 +439,16 @@ function criarGraficoDizimos(dados) {
 
 // Criar gráfico de contribuintes
 function criarGraficoContribuintes(dados) {
-    // Agrupar por usuário
-    const dadosPorUsuario = {};
-    dados.forEach(item => {
-        const nome = item.nome_usuario;
-        dadosPorUsuario[nome] = (dadosPorUsuario[nome] || 0) + parseFloat(item.valor);
-    });
-
-    // Pegar top 10
-    const top10 = Object.entries(dadosPorUsuario)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 10);
+    // Usar dados já agregados do backend
+    const top10 = dados.slice(0, 10);
 
     return {
         type: 'bar',
         data: {
-            labels: top10.map(([nome]) => nome),
+            labels: top10.map(item => item.nome_usuario),
             datasets: [{
                 label: 'Total Contribuído',
-                data: top10.map(([, valor]) => valor),
+                data: top10.map(item => parseFloat(item.total_contribuido)),
                 backgroundColor: 'rgba(54, 162, 235, 0.8)'
             }]
         },
@@ -435,6 +458,16 @@ function criarGraficoContribuintes(dados) {
                 title: {
                     display: true,
                     text: 'Top 10 Contribuintes'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return formatarMoeda(value);
+                        }
+                    }
                 }
             }
         }
@@ -448,7 +481,7 @@ function criarGraficoCelulas(dados) {
         data: {
             labels: dados.map(item => item.nome_celula),
             datasets: [{
-                data: dados.map(item => item.total_membros),
+                data: dados.map(item => parseInt(item.total_membros)),
                 backgroundColor: [
                     '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
                     '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
@@ -469,14 +502,23 @@ function criarGraficoCelulas(dados) {
 
 // Criar gráfico de membros
 function criarGraficoMembros(dados) {
+    // Agrupar por perfil
+    const dadosPorPerfil = {};
+    dados.forEach(item => {
+        const perfil = item.perfil || 'N/A';
+        dadosPorPerfil[perfil] = (dadosPorPerfil[perfil] || 0) + 1;
+    });
+
     return {
-        type: 'bar',
+        type: 'pie',
         data: {
-            labels: dados.map(item => item.nome_usuario),
+            labels: Object.keys(dadosPorPerfil),
             datasets: [{
-                label: 'Membros',
-                data: dados.map(() => 1),
-                backgroundColor: 'rgba(75, 192, 192, 0.8)'
+                data: Object.values(dadosPorPerfil),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                    '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                ]
             }]
         },
         options: {
@@ -484,7 +526,7 @@ function criarGraficoMembros(dados) {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Lista de Membros'
+                    text: 'Distribuição de Membros por Perfil'
                 }
             }
         }
@@ -512,8 +554,12 @@ function criarGraficoPadrao(dados) {
 // Preencher tabela
 function preencherTabela(dados, tipo) {
     const tbody = document.querySelector('#tabelaRelatorio tbody');
-    if (!tbody) return;
+    const thead = document.querySelector('#tabelaRelatorio thead tr');
+    if (!tbody || !thead) return;
 
+    // Atualizar cabeçalhos da tabela
+    atualizarCabecalhosTabela(tipo);
+    
     tbody.innerHTML = '';
 
     dados.forEach(item => {
@@ -521,7 +567,6 @@ function preencherTabela(dados, tipo) {
         
         switch (tipo) {
             case 'dizimos':
-            case 'contribuintes':
                 tr.innerHTML = `
                     <td>${item.nome_usuario || 'N/A'}</td>
                     <td>${item.nome_celula || 'N/A'}</td>
@@ -530,13 +575,22 @@ function preencherTabela(dados, tipo) {
                     <td>${item.metodo_pagamento || 'N/A'}</td>
                 `;
                 break;
+            case 'contribuintes':
+                tr.innerHTML = `
+                    <td>${item.nome_usuario || 'N/A'}</td>
+                    <td>${item.nome_celula || 'N/A'}</td>
+                    <td>${formatarMoeda(item.total_contribuido)}</td>
+                    <td>${item.total_contribuicoes || 0}</td>
+                    <td>${formatarMoeda(item.media_contribuicao)}</td>
+                    <td>${formatarData(item.ultima_contribuicao)}</td>
+                `;
+                break;
             case 'celulas':
                 tr.innerHTML = `
                     <td>${item.nome_celula || 'N/A'}</td>
                     <td>${item.total_membros || 0}</td>
-                    <td>${item.administrador || 'N/A'}</td>
+                    <td>${item.administradores || 'N/A'}</td>
                     <td>${item.igreja || 'N/A'}</td>
-                    <td>${item.status || 'Ativa'}</td>
                 `;
                 break;
             case 'membros':
@@ -545,13 +599,58 @@ function preencherTabela(dados, tipo) {
                     <td>${item.nome_celula || 'N/A'}</td>
                     <td>${item.perfil || 'N/A'}</td>
                     <td>${item.email || 'N/A'}</td>
-                    <td>${item.status || 'Ativo'}</td>
+                    <td>${item.nome_igreja || 'N/A'}</td>
                 `;
                 break;
         }
         
         tbody.appendChild(tr);
     });
+}
+
+// Atualizar cabeçalhos da tabela
+function atualizarCabecalhosTabela(tipo) {
+    const thead = document.querySelector('#tabelaRelatorio thead tr');
+    if (!thead) return;
+
+    switch (tipo) {
+        case 'dizimos':
+            thead.innerHTML = `
+                <th>Membro</th>
+                <th>Célula</th>
+                <th>Data</th>
+                <th>Valor</th>
+                <th>Método</th>
+            `;
+            break;
+        case 'contribuintes':
+            thead.innerHTML = `
+                <th>Membro</th>
+                <th>Célula</th>
+                <th>Total Contribuído</th>
+                <th>Total Contribuições</th>
+                <th>Média por Contribuição</th>
+                <th>Última Contribuição</th>
+            `;
+            break;
+        case 'celulas':
+            thead.innerHTML = `
+                <th>Nome da Célula</th>
+                <th>Total de Membros</th>
+                <th>Administradores</th>
+                <th>Igreja</th>
+            `;
+            break;
+        case 'membros':
+            thead.innerHTML = `
+                <th>Nome</th>
+                <th>Célula</th>
+                <th>Perfil</th>
+                <th>Email</th>
+                <th>Igreja</th>
+            `;
+            break;
+    }
 }
 
 // Habilitar botões de exportação
