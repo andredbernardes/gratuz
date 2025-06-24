@@ -15,7 +15,7 @@ router.use((req, res, next) => {
 });
 
 // Middleware de autorização - apenas ADMIN, PASTOR e SUPER_ADMIN podem acessar relatórios
-router.use(autorizarPerfis(['ADMIN', 'PASTOR', 'SUPER_ADMIN']));
+router.use(autorizarPerfis('ADMIN', 'PASTOR', 'SUPER_ADMIN'));
 
 // Rotas de relatórios
 router.get('/teste', (req, res) => {

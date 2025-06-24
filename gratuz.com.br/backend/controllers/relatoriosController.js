@@ -32,13 +32,13 @@ async function relatorioDizimos(req, res) {
 
         // Filtro por período
         if (periodo_inicio) {
-            filtro += ` AND DATE_TRUNC('month', d.data) >= DATE_TRUNC('month', $${paramIndex}::date)`;
+            filtro += ` AND DATE_TRUNC('month', d.data_pagamento) >= DATE_TRUNC('month', $${paramIndex}::date)`;
             params.push(periodo_inicio + '-01');
             paramIndex++;
         }
 
         if (periodo_fim) {
-            filtro += ` AND DATE_TRUNC('month', d.data) <= DATE_TRUNC('month', $${paramIndex}::date)`;
+            filtro += ` AND DATE_TRUNC('month', d.data_pagamento) <= DATE_TRUNC('month', $${paramIndex}::date)`;
             params.push(periodo_fim + '-01');
             paramIndex++;
         }
@@ -53,8 +53,8 @@ async function relatorioDizimos(req, res) {
             SELECT 
                 d.id,
                 d.valor,
-                d.data,
-                d.metodo_pagamento,
+                d.data_pagamento as data,
+                d.tipotributo as metodo_pagamento,
                 u.nome as nome_usuario,
                 u.id as usuario_id,
                 c.nome as nome_celula,
@@ -65,7 +65,7 @@ async function relatorioDizimos(req, res) {
             LEFT JOIN celulas c ON uc.celula_id = c.id
             LEFT JOIN igrejas i ON d.igreja_id = i.id
             ${filtro}
-            ORDER BY d.data DESC
+            ORDER BY d.data_pagamento DESC
         `;
 
         const { rows } = await db.query(query, params);
@@ -222,13 +222,13 @@ async function relatorioContribuintes(req, res) {
 
         // Filtro por período
         if (periodo_inicio) {
-            filtro += ` AND DATE_TRUNC('month', d.data) >= DATE_TRUNC('month', $${paramIndex}::date)`;
+            filtro += ` AND DATE_TRUNC('month', d.data_pagamento) >= DATE_TRUNC('month', $${paramIndex}::date)`;
             params.push(periodo_inicio + '-01');
             paramIndex++;
         }
 
         if (periodo_fim) {
-            filtro += ` AND DATE_TRUNC('month', d.data) <= DATE_TRUNC('month', $${paramIndex}::date)`;
+            filtro += ` AND DATE_TRUNC('month', d.data_pagamento) <= DATE_TRUNC('month', $${paramIndex}::date)`;
             params.push(periodo_fim + '-01');
             paramIndex++;
         }
@@ -247,7 +247,7 @@ async function relatorioContribuintes(req, res) {
                 SUM(d.valor) as total_contribuido,
                 COUNT(d.id) as total_contribuicoes,
                 AVG(d.valor) as media_contribuicao,
-                MAX(d.data) as ultima_contribuicao
+                MAX(d.data_pagamento) as ultima_contribuicao
             FROM usuarios u
             JOIN dizimos d ON u.id = d.usuario_id
             LEFT JOIN usuarios_celulas uc ON u.id = uc.usuario_id
