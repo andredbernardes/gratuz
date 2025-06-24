@@ -1,0 +1,54 @@
+<nav id="navbarMenu" class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="dashboard.html">
+      <img id="logo-menu" src="./assets/icon-gratuz-br.png" alt="Ícone Gratuz Branco" width="30" height="30" class="d-inline-block align-text-top me-2">
+      Gratuz
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" id="menu-dashboard" href="dashboard.html">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item" id="nav-item-usuarios">
+          <a class="nav-link" id="menu-usuarios" href="usuarios.html">
+            <i class="bi bi-people me-2"></i>Usuários
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="menu-dizimos" href="dizimos.html">
+            <i class="bi bi-cash-stack me-2"></i>Dízimos
+          </a>
+        </li>
+        <li class="nav-item" id="nav-item-relatorios">
+          <a class="nav-link" id="menu-relatorios" href="relatorios.html">
+            <i class="bi bi-file-earmark-text me-2"></i>Relatórios
+          </a>
+        </li>
+      </ul>
+      <div class="dropdown">
+        <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" type="button" id="perfilDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-person-circle fs-3 me-2"></i>
+          <div class="d-flex flex-column align-items-start lh-1">
+            <span id="perfilNomeUsuario">Usuário</span>
+            <small id="perfilTipoUsuario" class="text-white-50">(Perfil)</small>
+          </div>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="perfilDropdown">
+            <li><h6 class="dropdown-header">Perfil do Usuário</h6></li>
+            <li><a class="dropdown-item" href="perfil.html">
+              <i class="bi bi-gear me-2"></i>Meu Perfil
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+              <i class="bi bi-box-arrow-right me-2"></i>Sair
+            </a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav> 
